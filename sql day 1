@@ -1,0 +1,97 @@
+Advanced sql queries
+
+CREATE TABLE employees (
+    emp_id SERIAL PRIMARY KEY,
+    emp_name VARCHAR(100),
+    department VARCHAR(50),
+    salary NUMERIC(10,2)
+);
+drop table employees;
+
+INSERT INTO employees (emp_name, department, salary) VALUES
+('Alice', 'HR', 50000),
+('Bob', 'IT', 70000),
+('Charlie', 'IT', 72000),
+('David', 'HR', 52000),
+('Eve', 'Finance', 65000);
+
+select * from employees;
+--Rank employees by salary within their department.
+select *,
+rank() over (partition by department order by salary desc ) as rnk
+from employees;
+
+---Calculate cumulative salary in the company.
+select *,
+sum(salary)  over (order by emp_id) as cumulative_sum
+from employees;
+
+---Compare each employee's salary to the previous employee.
+select *,
+lag(salary) over (order by emp_id) as previous_employee_salary
+from employees;
+
+
+----Compare each employee's salary to the previous employee.
+select *,
+lag(salary) over (order by emp_id) as previous_employee_salary,
+lead(salary) over (order by emp_id) as previous_employee_salary
+from employees;
+
+--Get salary difference from previous row.
+select *,
+salary - lag(salary) over (order by emp_id) as salary_diff
+from employees;
+
+
+select *,
+salary + lag(salary) over (order by emp_id) as salary_diff
+from employees;
+
+
+--Show department average salary next to each employee.
+select *,
+avg(salary) over(partition by department) as avg_salary 
+from employees;
+
+--Show total number of employees in each department.
+select department,
+count(*) over(partition by department) as dept_count
+from employees;
+
+--Assign row number to employees within each department.
+
+select *,
+row_number() over (partition by department order by emp_name asc) as row_num
+from employees;
+
+--Get dense rank of employees across departments based on salary.
+SELECT emp_name, salary,
+       DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rank
+FROM employees;
+
+--Find first and last salary based on salary order in each department.
+SELECT emp_name, department, salary,
+       FIRST_VALUE(salary) OVER (PARTITION BY department ORDER BY salary) AS first_sal,
+       LAST_VALUE(salary) OVER (PARTITION BY department ORDER BY salary 
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_sal
+FROM employees;
+
+---Get percent rank of employees based on salary.
+SELECT emp_name, salary,
+       PERCENT_RANK() OVER (ORDER BY salary) AS perc_rank
+FROM employees;
+
+ALTER TABLE employees ADD COLUMN hire_date DATE;
+
+UPDATE employees SET hire_date = '2020-01-01' WHERE emp_id = 1;
+UPDATE employees SET hire_date = '2020-03-01' WHERE emp_id = 2;
+UPDATE employees SET hire_date = '2020-06-01' WHERE emp_id = 3;
+UPDATE employees SET hire_date = '2020-08-01' WHERE emp_id = 4;
+UPDATE employees SET hire_date = '2020-10-01' WHERE emp_id = 5;
+
+
+--Get days between this and previous hire.
+SELECT emp_name, hire_date,
+       hire_date - LAG(hire_date) OVER (ORDER BY hire_date) AS days_since_last
+FROM employees;
