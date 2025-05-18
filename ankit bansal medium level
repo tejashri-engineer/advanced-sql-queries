@@ -1,0 +1,81 @@
+-----problem where we need to find player with no of gold medals won by them only for players who won only gold medals
+
+
+--script:
+CREATE TABLE events (
+ID int,
+event varchar(255),
+YEAR INt,
+GOLD varchar(255),
+SILVER varchar(255),
+BRONZE varchar(255)
+);
+
+delete from events;
+
+INSERT INTO events VALUES (1,'100m',2016, 'Amthhew Mcgarray','donald','barbara');
+INSERT INTO events VALUES (2,'200m',2016, 'Nichole','Alvaro Eaton','janet Smith');
+INSERT INTO events VALUES (3,'500m',2016, 'Charles','Nichole','Susana');
+INSERT INTO events VALUES (4,'100m',2016, 'Ronald','maria','paula');
+INSERT INTO events VALUES (5,'200m',2016, 'Alfred','carol','Steven');
+INSERT INTO events VALUES (6,'500m',2016, 'Nichole','Alfred','Brandon');
+INSERT INTO events VALUES (7,'100m',2016, 'Charles','Dennis','Susana');
+INSERT INTO events VALUES (8,'200m',2016, 'Thomas','Dawn','catherine');
+INSERT INTO events VALUES (9,'500m',2016, 'Thomas','Dennis','paula');
+INSERT INTO events VALUES (10,'100m',2016, 'Charles','Dennis','Susana');
+INSERT INTO events VALUES (11,'200m',2016, 'jessica','Donald','Stefeney');
+INSERT INTO events VALUES (12,'500m',2016,'Thomas','Steven','Catherine');
+
+--problem where we need to find player with no of gold medals won by them only for players who won only gold medals
+
+select * from events;
+
+select 
+gold as player_name,
+count(1) as cnt 
+from events
+where gold not in (select silver from events union all select bronze from events)
+group by gold;
+
+--2 nd approach----
+with cte as (
+select gold,'gold' as medal_type from events
+union all select silver,'silver'as medal_type from events
+union all select bronze,'bronze'as medal_type from events)
+select gold,count(1) as no_of_medals
+from cte 
+group by gold having count(distinct medal_type)= 1 and max(medal_type) ='gold'
+
+
+
+---2 question ---
+--script:problem where we need to find number of employees inside the hospital.
+create table hospital ( emp_id int
+, action varchar(10)
+, time Timestamp);
+delete from hospital;
+insert into hospital values ('1', 'in', '2019-12-22 09:00:00');
+insert into hospital values ('1', 'out', '2019-12-22 09:15:00');
+insert into hospital values ('2', 'in', '2019-12-22 09:00:00');
+insert into hospital values ('2', 'out', '2019-12-22 09:15:00');
+insert into hospital values ('2', 'in', '2019-12-22 09:30:00');
+insert into hospital values ('3', 'out', '2019-12-22 09:00:00');
+insert into hospital values ('3', 'in', '2019-12-22 09:15:00');
+insert into hospital values ('3', 'out', '2019-12-22 09:30:00');
+insert into hospital values ('3', 'in', '2019-12-22 09:45:00');
+insert into hospital values ('4', 'in', '2019-12-22 09:45:00');
+insert into hospital values ('5', 'out', '2019-12-22 09:40:00');
+
+
+select * from hospital;
+
+with cte as (
+select 
+emp_id,
+max(case when action ='in' then Time end) as intime,
+max(case when action ='out' then Time end) as outtime
+from hospital
+group by emp_id)
+select *
+from cte 
+where intime > outtime or outtime is null;
