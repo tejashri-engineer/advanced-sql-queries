@@ -79,3 +79,73 @@ group by emp_id)
 select *
 from cte 
 where intime > outtime or outtime is null;
+
+
+
+----question 3 
+--find the room types that are searched most no of times.output the room type alongside the number of searches for it. 
+--If the filter for room types has more than one room type,consider each unique roo type as a separate row. 
+--Sort the result based on th number of searches in desc order.
+
+create table airbnb_searches 
+(
+user_id int,
+date_searched date,
+filter_room_types varchar(200)
+);
+delete from airbnb_searches;
+insert into airbnb_searches values
+(1,'2022-01-01','entire home,private room')
+,(2,'2022-01-02','entire home,shared room')
+,(3,'2022-01-02','private room,shared room')
+,(4,'2022-01-03','private room')
+;
+
+select * from airbnb_searches;
+SELECT 
+  TRIM(room_type) AS room_type,
+  COUNT(*) AS no_of_searches
+FROM (
+  SELECT 
+    unnest(string_to_array(filter_room_types, ',')) AS room_type
+  FROM airbnb_searches
+) AS normalized
+GROUP BY TRIM(room_type)
+ORDER BY no_of_searches DESC;
+
+
+
+
+----4 question---
+--script:write a sql to return all employee whose salary is same in same department
+CREATE TABLE emp_salary (
+    emp_id INTEGER NOT NULL,
+    name VARCHAR(20) NOT NULL,
+    salary NUMERIC(10, 2),
+    dept_id INTEGER
+);
+
+INSERT INTO emp_salary (emp_id, name, salary, dept_id)
+VALUES
+(101, 'sohan', 3000, 11),
+(102, 'rohan', 4000, 12),
+(103, 'mohan', 5000, 13),
+(104, 'cat', 3000, 11),
+(105, 'suresh', 4000, 12),
+(109, 'mahesh', 7000, 12),
+(108, 'kamal', 8000, 11);
+
+select * from emp_salary;
+WITH cte AS (
+    SELECT 
+        dept_id,
+        salary
+    FROM emp_salary 
+    GROUP BY dept_id, salary
+    HAVING COUNT(*) > 1
+)
+SELECT e1.* 
+FROM emp_salary e1
+INNER JOIN cte e2 
+  ON e1.dept_id = e2.dept_id;
+
