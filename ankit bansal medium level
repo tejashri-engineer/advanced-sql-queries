@@ -1,6 +1,5 @@
------problem where we need to find player with no of gold medals won by them only for players who won only gold medals
-
-
+-----problem 1
+-where we need to find player with no of gold medals won by them only for players who won only gold medals
 --script:
 CREATE TABLE events (
 ID int,
@@ -8,10 +7,7 @@ event varchar(255),
 YEAR INt,
 GOLD varchar(255),
 SILVER varchar(255),
-BRONZE varchar(255)
-);
-
-delete from events;
+BRONZE varchar(255));
 
 INSERT INTO events VALUES (1,'100m',2016, 'Amthhew Mcgarray','donald','barbara');
 INSERT INTO events VALUES (2,'200m',2016, 'Nichole','Alvaro Eaton','janet Smith');
@@ -26,10 +22,7 @@ INSERT INTO events VALUES (10,'100m',2016, 'Charles','Dennis','Susana');
 INSERT INTO events VALUES (11,'200m',2016, 'jessica','Donald','Stefeney');
 INSERT INTO events VALUES (12,'500m',2016,'Thomas','Steven','Catherine');
 
---problem where we need to find player with no of gold medals won by them only for players who won only gold medals
-
 select * from events;
-
 select 
 gold as player_name,
 count(1) as cnt 
@@ -46,7 +39,7 @@ select gold,count(1) as no_of_medals
 from cte 
 group by gold having count(distinct medal_type)= 1 and max(medal_type) ='gold'
 
-
+--------------------------------------------------------------------------------------------
 
 ---2 question ---
 --script:problem where we need to find number of employees inside the hospital.
@@ -66,7 +59,6 @@ insert into hospital values ('3', 'in', '2019-12-22 09:45:00');
 insert into hospital values ('4', 'in', '2019-12-22 09:45:00');
 insert into hospital values ('5', 'out', '2019-12-22 09:40:00');
 
-
 select * from hospital;
 
 with cte as (
@@ -80,7 +72,7 @@ select *
 from cte 
 where intime > outtime or outtime is null;
 
-
+-----------------------------------------------------------------------------------------------
 
 ----question 3 
 --find the room types that are searched most no of times.output the room type alongside the number of searches for it. 
@@ -113,8 +105,7 @@ FROM (
 GROUP BY TRIM(room_type)
 ORDER BY no_of_searches DESC;
 
-
-
+---------------------------------------------------------------------------------------------------------
 
 ----4 question---
 --script:write a sql to return all employee whose salary is same in same department
@@ -149,7 +140,8 @@ FROM emp_salary e1
 INNER JOIN cte e2 
   ON e1.dept_id = e2.dept_id;
 
------5 
+-------------------------------------------------------------------------------------------------
+
 ---question 5 
 --write a query to obtain the number of users who purchased the same product of two or more different days. Output the number of unique users
 
@@ -166,7 +158,6 @@ insert into purchases values(536, 3223, 5, '03/02/2022 09:33:28');
 insert into purchases values(536, 1435, 10, '03/02/2022 08:40:00');
 insert into purchases values(827, 2452, 45, '04/09/2022 00:00:00');
 
-
 select * from purchases;
 select count(1) as users_num from (
 select 
@@ -176,3 +167,84 @@ count(distinct purchase_date::date) as purchase_date
 from purchases
 group by 1, 2
 having count(purchase_date::date) >1)a;
+
+------------------------------------------------------------------------------------------------
+
+---question 6 
+--write a query to print highest and lowest salary emp in each depatment 
+drop table employee;
+
+create table employee 
+(
+emp_name varchar(10),
+dep_id int,
+salary int
+);
+
+insert into employee values 
+('Siva',1,30000),('Ravi',2,40000),('Prasad',1,50000),('Sai',2,20000);
+
+select * from employee;
+with cte as (
+select
+dep_id,
+max(salary) as max_salary,
+min(salary) as min_salary
+from employee
+group by 1)
+select
+e.dep_id,
+max(case when salary = max_salary then emp_name else null end) as max_sal_emp,
+max(case when salary = min_salary then emp_name else null end) as min_sal_emp
+from employee e
+inner join cte c on e.dep_id = c.dep_id
+group by 1;
+
+
+---2nd approach---
+SELECT
+    dep_id,
+    MAX(CASE WHEN rn_max = 1 THEN emp_name END) AS max_sal_emp,
+    MAX(CASE WHEN rn_min = 1 THEN emp_name END) AS min_sal_emp
+FROM (
+    SELECT *,
+        RANK() OVER (PARTITION BY dep_id ORDER BY salary DESC) AS rn_max,
+        RANK() OVER (PARTITION BY dep_id ORDER BY salary ASC) AS rn_min
+    FROM employee
+) t
+GROUP BY dep_id;
+
+-----------------------------------------------------------------------------
+--7 questions
+--script:
+create table call_start_logs
+(
+phone_number varchar(10),
+start_time timestamp);
+
+insert into call_start_logs values
+('PN1','2022-01-01 10:20:00'),('PN1','2022-01-01 16:25:00'),('PN2','2022-01-01 12:30:00')
+,('PN3','2022-01-02 10:00:00'),('PN3','2022-01-02 12:30:00'),('PN3','2022-01-03 09:20:00');
+
+create table call_end_logs(
+phone_number varchar(10),
+end_time timestamp);
+
+insert into call_end_logs values
+('PN1','2022-01-01 10:45:00'),('PN1','2022-01-01 17:05:00'),('PN2','2022-01-01 12:55:00')
+,('PN3','2022-01-02 10:20:00'),('PN3','2022-01-02 12:50:00'),('PN3','2022-01-03 09:40:00');
+
+
+select * from call_start_logs;
+select * from  call_end_logs;
+
+select a.phone_number,a.start_time,b.end_time, AGE(end_time, start_time) AS time_diff, DATE_PART('minute', AGE(end_time, start_time)) AS minutes_diff
+from
+(select *, row_number() over (partition by phone_number order by start_time) as rnk_start_time from call_start_logs)a
+inner join 
+(select *, row_number() over (partition by phone_number order by end_time) as rnk_end_time from call_end_logs)b
+on a.phone_number = b.phone_number and a.rnk_start_time= b.rnk_end_time;
+
+---we can use both Last 2 column for minutes--
+
+----------------------------------------------------------------------------------------------
