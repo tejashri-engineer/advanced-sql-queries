@@ -352,3 +352,42 @@ from
 Ameriprise_LLC a1
 left join cte b1 on a1.teamid = b1.teamid;
 
+------------------------------------------------------------------------------------------
+
+----question 10----
+
+create table family 
+(
+person varchar(5),
+type varchar(10),
+age int
+);
+
+insert into family values ('A1','Adult',54)
+,('A2','Adult',53),('A3','Adult',52),('A4','Adult',58),('A5','Adult',54),('C1','Child',20),('C2','Child',19),('C3','Child',22),('C4','Child',15);
+
+select * from family;
+
+
+
+
+WITH cte1 AS (
+  SELECT *,
+         ROW_NUMBER() OVER (ORDER BY person) AS rn
+  FROM family
+  WHERE type = 'Adult'
+),
+cte2 AS (
+  SELECT *,
+         ROW_NUMBER() OVER (ORDER BY person) AS rn
+  FROM family
+  WHERE type = 'Child'
+)
+SELECT 
+  a.person AS adult_person, 
+  b.person AS child_person
+FROM cte1 a
+LEFT JOIN cte2 b ON a.rn = b.rn;
+
+
+
