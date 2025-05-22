@@ -598,3 +598,32 @@ when s.name is null then 'new in target' else 'mismatch' end as comment
 from source s
 full join target t on s.id = t.id
 where s.name !=t.name or s.name is null or t.name is null
+
+---------------------------------------------------------------------------------------------
+
+---question 15 ---------(21)
+--Find the words which are repeating more than once considering all the rows of content column 
+create table namaste_python (
+file_name varchar(25),
+content varchar(200)
+);
+
+delete from namaste_python;
+insert into namaste_python values ('python bootcamp1.txt','python for data analytics 0 to hero bootcamp starting on Jan 6th')
+,('python bootcamp2.txt','classes will be held on weekends from 11am to 1 pm for 5-6 weeks')
+,('python bootcamp3.txt','use code NY2024 to get 33 percent off. You can register from namaste sql website. Link in pinned comment');
+
+select * from namaste_python
+select unnest(string_to_array('I want to split my sentence', ' ')) AS word;
+
+SELECT 
+  value AS word,
+  COUNT(*) AS cnt_of_word
+FROM namaste_python,
+LATERAL unnest(string_to_array(content, ' ')) AS value
+GROUP BY value
+having count(*)>1
+ORDER BY cnt_of_word DESC;
+
+----------------------------------------------------------------------------------------------
+
