@@ -867,3 +867,34 @@ SELECT o.order_id, o.order_date, d.delivery_date
 FROM orders o
 JOIN deliveries d ON o.order_id = d.order_id
 WHERE o.order_date <> d.delivery_date;
+---------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+
+--34)Identify rows missing in target or mismatched values.
+
+CREATE TABLE source_data (
+  id INT,
+  value TEXT
+);	
+CREATE TABLE target_data (
+  id INT,
+  value TEXT
+);
+INSERT INTO source_data VALUES (1, 'A'), (2, 'B'), (3, 'C');
+INSERT INTO target_data VALUES (1, 'A'), (3, 'C');
+
+select * from source_data;
+select * from target_data ;
+
+SELECT COALESCE(s.id, t.id) AS id,
+       s.value AS source_val,
+       t.value AS target_val
+FROM source_data s
+FULL OUTER JOIN target_data t ON s.id = t.id
+WHERE s.value IS DISTINCT FROM t.value;
+
+select * 
+from source_data s
+full join target_data t on s.id = t.id
+where s.value is distinct from t.value;
