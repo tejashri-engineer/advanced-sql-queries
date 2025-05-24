@@ -626,4 +626,109 @@ having count(*)>1
 ORDER BY cnt_of_word DESC;
 
 ----------------------------------------------------------------------------------------------
+--Find the number of employees who received the bonus and who didn't. Bonus values in employee table are corrupted so you 
+--should use values from the bonus table. Be aware of the fact that employee can receive more than one bonus. Output value inside has_bonus column 
+--(1 if they had bonus, 0 if not) 
+--along with the corresponding number of employees for each.
+
+CREATE TABLE employee_details (id BIGINT PRIMARY KEY, first_name VARCHAR(50), last_name VARCHAR(50), 
+age BIGINT, sex VARCHAR(10), email VARCHAR(100), address VARCHAR(100), city VARCHAR(50), department VARCHAR(50), 
+employee_title VARCHAR(50), manager_id BIGINT, salary BIGINT, target BIGINT, bonus BIGINT);
+
+INSERT INTO employee_details (id, first_name, last_name, age, sex, email, address, city, department, employee_title, manager_id, salary, target, bonus)
+VALUES (1, 'John', 'Doe', 30, 'Male', 'john.doe@example.com', '123 Elm St', 'New York', 'IT', 'Engineer', 
+101, 70000, 80000, 5000),(2, 'Jane', 'Smith', 28, 'Female', 'jane.smith@example.com',
+'456 Oak St', 'Los Angeles', 'HR', 'Manager', 102, 75000, 90000, NULL),(3, 'Alice', 'Johnson', 35,
+'Female', 'alice.johnson@example.com', '789 Pine St', 'Chicago', 'Finance', 'Analyst', 103, 80000, 95000, NULL),
+(4, 'Bob', 'Brown', 40, 'Male', 'bob.brown@example.com', '321 Maple St', 'Boston', 'IT', 'Director', 104, 120000, 130000, NULL),
+(5, 'Charlie', 'Davis', 25, 'Male', 'charlie.davis@example.com', '654 Cedar St', 'Seattle', 'Marketing', 'Specialist', 105, 50000, 60000, NULL);
+
+
+CREATE TABLE bonus (worker_ref_id BIGINT, bonus_amount BIGINT, bonus_date timestamp);
+
+INSERT INTO bonus (worker_ref_id, bonus_amount, bonus_date) VALUES (1, 5000, '2024-01-15'),(1, 3000, '2024-02-20'),(3, 2000, '2024-03-10'),(5, 1000, '2024-04-05');
+
+select * from employee_details;
+select * from bonus;
+
+with cte as (
+	select *,
+	case when bonus_amount is null then 0 else 1 end as has_bonus
+	from employee_details ed
+	left join bonus b on ed.id = b.worker_ref_id
+)
+select 
+	has_bonus,
+	count(distinct(id))
+from cte
+group by 1;
+----------------------------------------------------------------
+---Find the best selling item for each month (no need to separate months by year) where the biggest total invoice was paid. 
+--The best selling item is calculated using the formula (unitprice * quantity). 
+--Output the month, the description of the item along with the amount paid.
+
+CREATE TABLE online_retails (country VARCHAR(10),customerid FLOAT,description VARCHAR(10),invoicedate timestamp,invoiceno VARCHAR(10),
+quantity BIGINT,stockcode VARCHAR(10),unitprice FLOAT);
+
+INSERT INTO online_retails (country, customerid, description, invoicedate, invoiceno, quantity, stockcode, unitprice) VALUES
+('UK', 10001, 'Mug',     '2024-01-10 10:00:00', 'INV001', 10, 'A1', 5.0),
+('UK', 10002, 'Plate',   '2024-01-15 14:00:00', 'INV002', 15, 'B2', 3.0),
+('UK', 10003, 'Mug',     '2024-01-20 09:30:00', 'INV003', 5,  'A1', 5.0),
+('UK', 10004, 'Bowl',    '2024-02-05 12:00:00', 'INV004', 20, 'C3', 4.0),
+('UK', 10005, 'Mug',     '2024-02-10 13:00:00', 'INV005', 8,  'A1', 5.0),
+('UK', 10006, 'Bowl',    '2024-02-18 15:30:00', 'INV006', 15, 'C3', 4.0),
+('UK', 10007, 'Plate',   '2024-03-03 11:00:00', 'INV007', 10, 'B2', 3.0);
+
+select * from online_retails;
+
+with cte as (
+	select 
+		description,
+		extract(month from invoicedate) as month,
+		extract(year from invoicedate) as year,
+		sum(unitprice * quantity) as price
+	from online_retails
+	group by 1,2,3
+	order by 2,3
+)
+select * from (
+select *,
+	dense_rank() over(partition by month,year order by price desc) as rnk
+from cte)
+where rnk = 1;
+--------------------------------------------------------------------------
+
+--Find the top two hotels with the most negative reviews.
+--Output the hotel name along with the corresponding number of negative reviews. 
+--Negative reviews are all the reviews with text under negative review different than "No Negative". 
+--Sort records based on the number of negative reviews in descending order.
+
+
+drop table hotel_reviews;
+CREATE TABLE hotel_reviews (additional_number_of_scoring BIGINT, average_score FLOAT, days_since_review VARCHAR(255),
+hotel_address VARCHAR(255), hotel_name VARCHAR(255), 
+lat FLOAT, lng FLOAT, negative_review VARCHAR, positive_review VARCHAR, review_date Timestamp,
+review_total_negative_word_counts BIGINT, review_total_positive_word_counts BIGINT, reviewer_nationality VARCHAR(255), 
+reviewer_score FLOAT, tags VARCHAR, total_number_of_reviews BIGINT, total_number_of_reviews_reviewer_has_given BIGINT);
+
+INSERT INTO hotel_reviews VALUES
+(25, 8.7, '15 days ago', '123 Street, City A', 'Hotel Alpha', 12.3456, 98.7654, 'Too noisy at night', 'Great staff and clean rooms', '2024-12-01',
+5, 15, 'USA', 8.5, '["Couple"]', 200, 10), (30, 9.1, '20 days ago', '456 Avenue, City B', 'Hotel Beta', 34.5678, 76.5432, 'Old furniture', 
+'Excellent location', '2024-12-02', 4, 12, 'UK', 9.0, '["Solo traveler"]',
+150, 8), (12, 8.3, '10 days ago', '789 Boulevard, City C', 'Hotel Gamma', 23.4567, 67.8901, 'No Negative', 'Friendly staff', 
+'2024-12-03', 0, 10, 'India', 8.3, '["Family"]', 100, 5), (15, 8.0, '5 days ago', '321 Lane, City D', 
+'Hotel Delta', 45.6789, 54.3210, 'Uncomfortable bed', 'Affordable price', '2024-12-04', 6, 8, 'Germany', 7.8, '["Couple"]', 120, 7),
+(20, 7.9, '8 days ago', '654 Road, City E', 'Hotel Alpha', 67.8901, 12.3456, 'Poor room service', 
+'Good breakfast', '2024-12-05', 7, 9, 'France', 7.5, '["Solo traveler"]', 180, 6), (18, 9.3, '18 days ago', '987 Highway, City F',
+'Hotel Beta', 34.5678, 76.5432, 'No Negative', 'Amazing facilities', '2024-12-06', 0, 20, 'USA', 9.2, '["Couple"]', 250, 15);
+
+
+select * from hotel_reviews;
+select 
+	hotel_name,
+	count(negative_review)as cnt
+from hotel_reviews
+where negative_review != 'No Negative'
+group by 1;
+
 
