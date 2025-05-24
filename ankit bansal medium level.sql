@@ -1,5 +1,5 @@
 -----problem 1
--where we need to find player with no of gold medals won by them only for players who won only gold medals
+---where we need to find player with no of gold medals won by them only for players who won only gold medals
 --script:
 CREATE TABLE events (
 ID int,
