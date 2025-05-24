@@ -898,3 +898,34 @@ select *
 from source_data s
 full join target_data t on s.id = t.id
 where s.value is distinct from t.value;
+-----------------------------------------------------------
+--35)Find customers who never appear in activity_logs.
+
+drop table activity_logs;;
+CREATE TABLE customers (customer_id INT, name VARCHAR(50));
+CREATE TABLE activity_logs (log_id INT, customer_id INT, activity_date DATE);
+INSERT INTO customers VALUES (1,'Alice'),(2,'Bob'),(3,'Carol');
+INSERT INTO activity_logs VALUES (10,1,'2024-01-01'),(11,1,'2024-01-02'),(12,3,'2024-01-05');
+
+select * from customers;
+select * from activity_logs;
+
+select *
+from customers a
+left join activity_logs c on a.customer_id = c.customer_id 
+where c.customer_id is null;
+
+---------------------------------------------------------------------
+
+---36)Get the 2nd highest distinct salary. 
+
+CREATE TABLE emp (emp_id INT, name VARCHAR(50), salary INT);
+INSERT INTO emp VALUES (1,'A',50000),(2,'B',60000),(3,'C',70000),(4,'D',70000);
+
+select 
+distinct salary
+from emp 
+order by salary desc
+OFFSET 1 LIMIT 1;
+
+-------------------------------------------------------------------
