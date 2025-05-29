@@ -1024,3 +1024,33 @@ SELECT *,
        ) AS moving_avg_2_months
 FROM employee_sales;
 --------------------------------------------------------
+
+--40)You want to calculate the rolling average of daily sales over the past 7 days (including the current day) for each date.
+
+CREATE TABLE daily_sales (
+    sale_date DATE,
+    sales INT
+);
+
+INSERT INTO daily_sales VALUES
+('2024-03-01', 100),
+('2024-03-02', 120),
+('2024-03-03', 130),
+('2024-03-04', 90),
+('2024-03-05', 150),
+('2024-03-06', 110),
+('2024-03-07', 180),
+('2024-03-08', 160),
+('2024-03-09', 140),
+('2024-03-10', 200);
+
+
+SELECT 
+    sale_date,
+    sales,
+    ROUND(AVG(sales) OVER (
+        ORDER BY sale_date
+        ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+    ), 2) AS rolling_avg_7_days
+FROM daily_sales;
+
