@@ -929,3 +929,98 @@ order by salary desc
 OFFSET 1 LIMIT 1;
 
 -------------------------------------------------------------------
+--37) Problem: Find customers who made purchases in all 3 months.
+
+CREATE TABLE purchases (
+    cust_id INT,
+    purchase_month VARCHAR(10)
+);
+
+drop table purchases;
+INSERT INTO purchases VALUES
+(1, 'Jan'), (1, 'Feb'), (1, 'Mar'),
+(2, 'Jan'), (2, 'Feb'),
+(3, 'Jan'), (3, 'Feb'), (3, 'Mar');
+
+
+select * from purchases;
+
+
+SELECT cust_id
+FROM purchases
+GROUP BY cust_id
+HAVING COUNT(DISTINCT purchase_month) = 3;
+
+-------------------------------------------
+----38) Problem: Get latest order per customer.
+
+CREATE TABLE orders (
+    order_id INT,
+    cust_id INT,
+    order_date DATE
+);
+
+INSERT INTO orders VALUES
+(1, 100, '2024-01-01'),
+(2, 100, '2024-01-05'),
+(3, 101, '2024-01-07'),
+(4, 101, '2024-01-08');
+
+
+SELECT * FROM (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY cust_id ORDER BY order_date DESC) AS rn
+    FROM orders
+) t WHERE rn = 1;
+---------------------------------------------------------
+
+--
+--38) Problem: Show first and last recorded salary for each employee.
+
+CREATE TABLE salary_history (
+    emp_id INT,
+    salary INT,
+    updated_on DATE
+);
+
+INSERT INTO salary_history VALUES
+(1, 50000, '2023-01-01'),
+(1, 52000, '2023-06-01'),
+(1, 55000, '2024-01-01'),
+(2, 60000, '2023-02-01'),
+(2, 61000, '2023-07-01');
+
+
+select * from salary_history;
+
+select * from (
+select *,
+first_value(salary)over (partition by emp_id order by updated_on)first_value,
+last_value(salary)over (partition by emp_id order by updated_on ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)last_value
+from salary_history);
+-------------------------------------------------------
+
+----39)Average of Last 2 Months' Sales
+
+CREATE TABLE employee_sales (
+    emp_id INT,
+    emp_name VARCHAR(50),
+    sale_month DATE,
+    sales_amount INT
+);
+
+INSERT INTO employee_sales VALUES
+(1, 'Alice', '2024-01-01', 10000),
+(1, 'Alice', '2024-02-01', 12000),
+(1, 'Alice', '2024-03-01', 8000),
+(2, 'Bob', '2024-01-01', 9500),
+(2, 'Bob', '2024-02-01', 11000),
+(2, 'Bob', '2024-03-01', 12000);
+
+SELECT *,
+       AVG(sales_amount) OVER (
+         PARTITION BY emp_id ORDER BY sale_month
+         ROWS BETWEEN 1 PRECEDING AND CURRENT ROW
+       ) AS moving_avg_2_months
+FROM employee_sales;
+--------------------------------------------------------
