@@ -98,7 +98,174 @@ select *
 from cte 
 where rnk =3;
 
+-------------------------------------------------------
+---1)Write the SQL query to find the second highest salary
+drop table employees;
+CREATE TABLE employees (
+    employee_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    department VARCHAR(50),
+    salary DECIMAL(10, 2)
+);
 
+-- Insert records for three departments
+INSERT INTO employees (name, department, salary) VALUES 
+('John Doe', 'Engineering', 63000),
+('Jane Smith', 'Engineering', 55000),
+('Michael Johnson', 'Engineering', 64000),
+('Emily Davis', 'Marketing', 58000),
+('Chris Brown', 'Marketing', 56000),
+('Emma Wilson', 'Marketing', 59000),
+('Alex Lee', 'Sales', 58000),
+('Sarah Adams', 'Sales', 58000),
+('Ryan Clark', 'Sales', 61000);
+
+select * from employees;
+select * from (
+select *,
+	row_number() over(partition by department order by salary desc) as rnk
+from employees)
+where rnk = 2;
+
+select * from employees where salary <
+(select max(salary) from employees)limit 1;
+
+select * from employees 
+order by salary desc
+limit 1 offset 1;
+
+
+----------------------------------------------------------------------
+
+--2)
+DROP TABLE IF EXISTS Orders;
+	
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    OrderDate DATE,
+    TotalAmount DECIMAL(10, 2)
+);
+
+DROP TABLE IF EXISTS Returns;
+CREATE TABLE Returns (
+    ReturnID INT PRIMARY KEY,
+    OrderID INT
+   );
+
+INSERT INTO Orders (OrderID, OrderDate, TotalAmount) VALUES
+(1, '2023-01-15', 150.50),
+(2, '2023-02-20', 200.75),
+(3, '2023-02-28', 300.25),
+(4, '2023-03-10', 180.00),
+(5, '2023-04-05', 250.80);
+
+INSERT INTO Returns (ReturnID, OrderID) VALUES
+(101, 2),
+(102, 4),
+(103, 5),
+(104, 1),
+(105, 3);
+
+/*
+write an SQL query to calculate the total 
+numbers of returned orders for each month
+
+*/
+
+select * from returns;
+select * from orders;
+
+select
+count(*) as no_of_returned_items,
+extract (month from orderdate)  || '-' || EXTRACT(YEAR FROM o.orderdate) as month
+from returns r
+left join orders o on r.orderid = o.orderid
+group by month
+order by month;
+
+-------------------------------------------------------------------
+
+--3
+DROP TABLE IF EXISTS products;
+
+-- Step 1: Create the products table
+CREATE TABLE products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(50),
+    category VARCHAR(50),
+    quantity_sold INT
+);
+
+-- Step 2: Insert sample records into the products table
+INSERT INTO products (product_id, product_name, category, quantity_sold) VALUES
+(1, 'Samsung Galaxy S20', 'Electronics', 100),
+(2, 'Apple iPhone 12 Pro', 'Electronics', 150),
+(3, 'Sony PlayStation 5', 'Electronics', 80),
+(4, 'Nike Air Max 270', 'Clothing', 200),
+(5, 'Adidas Ultraboost 20', 'Clothing', 200),
+(6, 'Levis Mens 501 Jeans', 'Clothing', 90),
+(7, 'Instant Pot Duo 7-in-1', 'Home & Kitchen', 180),
+(8, 'Keurig K-Classic Coffee Maker', 'Home & Kitchen', 130),
+(9, 'iRobot Roomba 675 Robot Vacuum', 'Home & Kitchen', 130),
+(10, 'Breville Compact Smart Oven', 'Home & Kitchen', 90),
+(11, 'Dyson V11 Animal Cordless Vacuum', 'Home & Kitchen', 90);
+
+
+
+/*
+
+Questions : 
+Write SQL query to find the top-selling products in each category*/
+
+select * from products;
+
+with cte as (
+	select *,
+		row_number()over(partition by category order by quantity_sold desc) as rnk,
+		dense_rank()over(partition by category order by quantity_sold desc) as rnk1,
+		rank()over(partition by category order by quantity_sold desc) as rnk2
+	from products
+)
+select * from cte 
+where rnk1 = 1
+
+----------------------------------------------------------------
+
+--5)
+
+DROP TABLE IF EXISTS Employees;
+-- Create the Employee table
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Department VARCHAR(50),
+    Salary DECIMAL(10, 2),
+    HireDate DATE
+);
+
+-- Insert sample records into the Employee table
+INSERT INTO Employees (EmployeeID, Name, Department, Salary, HireDate) VALUES
+(101, 'John Smith', 'Sales', 60000.00, '2022-01-15'),
+(102, 'Jane Doe', 'Marketing', 55000.00, '2022-02-20'),
+(103, 'Michael Johnson', 'Finance', 70000.00, '2021-12-10'),
+(104, 'Emily Brown', 'Sales', 62000.00, '2022-03-05'),
+(106, 'Sam Brown', 'IT', 62000.00, '2022-03-05'),	
+(105, 'Chris Wilson', 'Marketing', 58000.00, '2022-01-30');
+
+
+/*
+
+Write a SQL query to retrieve the 
+third highest salary from the Employee table.
+
+*/
+
+select * from Employees;
+select * from (
+select *,
+dense_rank () over( order by salary desc) as rnk 
+from Employees)
+where rnk =3
 
 
 
